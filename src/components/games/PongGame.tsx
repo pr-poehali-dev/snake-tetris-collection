@@ -11,6 +11,7 @@ const BALL_SIZE = 10;
 
 const PongGame = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState({ player: 0, ai: 0 });
@@ -151,13 +152,31 @@ const PongGame = () => {
       gameState.current.playerY = Math.max(0, Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, mouseY - PADDLE_HEIGHT / 2));
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPlaying || !canvasRef.current) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvasRef.current.getBoundingClientRect();
+      const touchY = touch.clientY - rect.top;
+      gameState.current.playerY = Math.max(0, Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, touchY - PADDLE_HEIGHT / 2));
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (canvas) {
+        canvas.removeEventListener('touchmove', handleTouchMove);
+      }
+    };
   }, [isPlaying]);
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <Card className="p-6">
+    <div className="flex flex-col items-center gap-6" ref={containerRef}>
+      <Card className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-8">
             <div className="text-center">
@@ -189,7 +208,8 @@ const PongGame = () => {
             ref={canvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            className="border-4 border-primary rounded-lg"
+            className="border-4 border-primary rounded-lg touch-none"
+            style={{ maxWidth: '90vw', height: 'auto' }}
           />
           {gameOver && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-lg">
@@ -206,7 +226,7 @@ const PongGame = () => {
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          Двигайте мышь для управления ракеткой. Первый до 5 очков!
+          ПК: Двигайте мышь | Мобильные: Касайтесь экрана | Первый до 5 очков!
         </div>
       </Card>
     </div>

@@ -9,6 +9,9 @@ import SnakeGame from '@/components/games/SnakeGame';
 import TetrisGame from '@/components/games/TetrisGame';
 import Game2048 from '@/components/games/Game2048';
 import PongGame from '@/components/games/PongGame';
+import FlappyGame from '@/components/games/FlappyGame';
+import MemoryGame from '@/components/games/MemoryGame';
+import BreakoutGame from '@/components/games/BreakoutGame';
 import Leaderboard from '@/components/Leaderboard';
 
 type Game = {
@@ -26,7 +29,9 @@ const games: Game[] = [
   { id: 'tetris', name: 'Тетрис', category: 'Классика', icon: '🧱', popular: true, new: false, component: TetrisGame },
   { id: '2048', name: '2048', category: 'Головоломки', icon: '🔢', popular: true, new: false, component: Game2048 },
   { id: 'pong', name: 'Пинг-понг', category: 'Аркады', icon: '🏓', popular: false, new: true, component: PongGame },
-  { id: 'breakout', name: 'Арканоид', category: 'Аркады', icon: '⚾', popular: true, new: false },
+  { id: 'flappy', name: 'Flappy Bird', category: 'Аркады', icon: '🐦', popular: true, new: false, component: FlappyGame },
+  { id: 'memory', name: 'Память', category: 'Головоломки', icon: '🧠', popular: false, new: true, component: MemoryGame },
+  { id: 'breakout', name: 'Арканоид', category: 'Аркады', icon: '⚾', popular: true, new: false, component: BreakoutGame },
   { id: 'pacman', name: 'Пакман', category: 'Классика', icon: '👾', popular: true, new: false },
   { id: 'space', name: 'Космический бой', category: 'Экшн', icon: '🚀', popular: true, new: false },
   { id: 'racing', name: 'Гонки', category: 'Экшн', icon: '🏎️', popular: false, new: true },
@@ -40,7 +45,7 @@ const games: Game[] = [
   { id: 'solitaire', name: 'Пасьянс', category: 'Карточные', icon: '🃏', popular: true, new: false },
   { id: 'poker', name: 'Покер', category: 'Карточные', icon: '🎰', popular: false, new: false },
   { id: 'blackjack', name: 'Блэкджек', category: 'Карточные', icon: '🎴', popular: false, new: false },
-  { id: 'memory', name: 'Память', category: 'Головоломки', icon: '🧠', popular: false, new: true },
+
   { id: 'quiz', name: 'Викторина', category: 'Головоломки', icon: '❓', popular: false, new: false },
   { id: 'words', name: 'Слова', category: 'Головоломки', icon: '📝', popular: false, new: false },
   { id: 'crossword', name: 'Кроссворд', category: 'Головоломки', icon: '📰', popular: false, new: false },
@@ -60,7 +65,7 @@ const games: Game[] = [
   { id: 'tennis', name: 'Теннис', category: 'Спорт', icon: '🎾', popular: false, new: false },
   { id: 'darts', name: 'Дартс', category: 'Спорт', icon: '🎯', popular: false, new: false },
   { id: 'pinball', name: 'Пинбол', category: 'Аркады', icon: '🕹️', popular: false, new: false },
-  { id: 'flappy', name: 'Flappy Bird', category: 'Аркады', icon: '🐦', popular: true, new: false },
+
   { id: 'helicopter', name: 'Вертолёт', category: 'Аркады', icon: '🚁', popular: false, new: false },
   { id: 'parkour', name: 'Паркур', category: 'Экшн', icon: '🤸', popular: false, new: true },
   { id: 'ninja', name: 'Ниндзя', category: 'Экшн', icon: '🥷', popular: false, new: false },

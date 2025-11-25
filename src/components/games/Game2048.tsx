@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -49,6 +49,7 @@ const Game2048 = () => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const canMove = useCallback((board: Board): boolean => {
     for (let i = 0; i < GRID_SIZE; i++) {
@@ -172,9 +173,32 @@ const Game2048 = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isPlaying, gameOver, handleMove]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !isPlaying || gameOver) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    if (absDeltaX > 30 || absDeltaY > 30) {
+      if (absDeltaX > absDeltaY) {
+        handleMove(deltaX > 0 ? 'right' : 'left');
+      } else {
+        handleMove(deltaY > 0 ? 'down' : 'up');
+      }
+    }
+    touchStartRef.current = null;
+  };
+
   return (
     <div className="flex flex-col items-center gap-6">
-      <Card className="p-6">
+      <Card className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Icon name="Trophy" size={24} className="text-accent" />
@@ -195,11 +219,15 @@ const Game2048 = () => {
         </div>
 
         <div
-          className="relative rounded-lg p-2 bg-[#bbada0]"
+          className="relative rounded-lg p-2 bg-[#bbada0] touch-none"
           style={{
             width: GRID_SIZE * CELL_SIZE + 16,
             height: GRID_SIZE * CELL_SIZE + 16,
+            maxWidth: '90vw',
+            aspectRatio: '1',
           }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <div className="grid grid-cols-4 gap-2">
             {board.map((row, i) =>
@@ -232,7 +260,46 @@ const Game2048 = () => {
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          Используйте стрелки для управления
+          ПК: Стрелки | Мобильные: Свайпы
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mt-4 md:hidden">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleMove('left')}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowLeft" size={24} className="mr-2" />
+            Влево
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleMove('right')}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowRight" size={24} className="mr-2" />
+            Вправо
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleMove('up')}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowUp" size={24} className="mr-2" />
+            Вверх
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleMove('down')}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowDown" size={24} className="mr-2" />
+            Вниз
+          </Button>
         </div>
       </Card>
     </div>

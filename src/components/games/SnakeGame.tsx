@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -18,6 +18,7 @@ const SnakeGame = () => {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const generateFood = useCallback(() => {
     const newFood = {
@@ -106,9 +107,38 @@ const SnakeGame = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [direction, isPlaying]);
 
+  const handleChangeDirection = (newDir: Position) => {
+    if (!isPlaying) return;
+    if (newDir.x !== 0 && direction.x === 0) setDirection(newDir);
+    if (newDir.y !== 0 && direction.y === 0) setDirection(newDir);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    if (absDeltaX > 30 || absDeltaY > 30) {
+      if (absDeltaX > absDeltaY) {
+        handleChangeDirection(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+      } else {
+        handleChangeDirection(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+      }
+    }
+    touchStartRef.current = null;
+  };
+
   return (
     <div className="flex flex-col items-center gap-6">
-      <Card className="p-6">
+      <Card className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Icon name="Trophy" size={24} className="text-accent" />
@@ -129,12 +159,16 @@ const SnakeGame = () => {
         </div>
 
         <div
-          className="relative border-4 border-primary rounded-lg"
+          className="relative border-4 border-primary rounded-lg touch-none"
           style={{
             width: GRID_SIZE * CELL_SIZE,
             height: GRID_SIZE * CELL_SIZE,
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            maxWidth: '90vw',
+            aspectRatio: '1',
           }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           {snake.map((segment, index) => (
             <div
@@ -172,7 +206,47 @@ const SnakeGame = () => {
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          Используйте стрелки для управления
+          ПК: Стрелки | Мобильные: Свайпы
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4 md:hidden">
+          <div />
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleChangeDirection({ x: 0, y: -1 })}
+            disabled={!isPlaying}
+          >
+            <Icon name="ArrowUp" size={24} />
+          </Button>
+          <div />
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleChangeDirection({ x: -1, y: 0 })}
+            disabled={!isPlaying}
+          >
+            <Icon name="ArrowLeft" size={24} />
+          </Button>
+          <div />
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleChangeDirection({ x: 1, y: 0 })}
+            disabled={!isPlaying}
+          >
+            <Icon name="ArrowRight" size={24} />
+          </Button>
+          <div />
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => handleChangeDirection({ x: 0, y: 1 })}
+            disabled={!isPlaying}
+          >
+            <Icon name="ArrowDown" size={24} />
+          </Button>
+          <div />
         </div>
       </Card>
     </div>

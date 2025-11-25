@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -32,6 +32,7 @@ const TetrisGame = () => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const getRandomPiece = () => {
     const index = Math.floor(Math.random() * SHAPES.length);
@@ -148,6 +149,29 @@ const TetrisGame = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isPlaying, gameOver, movePiece, rotatePiece]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !isPlaying || gameOver) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    if (absDeltaX < 20 && absDeltaY < 20) {
+      rotatePiece();
+    } else if (absDeltaX > absDeltaY) {
+      movePiece(deltaX > 0 ? 1 : -1, 0);
+    } else {
+      movePiece(0, 1);
+    }
+    touchStartRef.current = null;
+  };
+
   const renderBoard = () => {
     const displayBoard = board.map(row => [...row]);
     currentPiece.forEach((row, y) => {
@@ -167,7 +191,7 @@ const TetrisGame = () => {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <Card className="p-6">
+      <Card className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Icon name="Trophy" size={24} className="text-accent" />
@@ -187,12 +211,16 @@ const TetrisGame = () => {
           )}
         </div>
 
-        <div className="relative border-4 border-primary rounded-lg overflow-hidden"
+        <div 
+          className="relative border-4 border-primary rounded-lg overflow-hidden touch-none"
           style={{
             width: BOARD_WIDTH * CELL_SIZE,
             height: BOARD_HEIGHT * CELL_SIZE,
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            maxWidth: '90vw',
           }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           {renderBoard().map((row, y) =>
             row.map((cell, x) => (
@@ -220,7 +248,42 @@ const TetrisGame = () => {
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          ← → Движение | ↓ Ускорить | ↑ Повернуть
+          ПК: ←→ Движение, ↑ Поворот, ↓ Ускорить | Мобильные: Свайпы, тап для поворота
+        </div>
+
+        <div className="grid grid-cols-4 gap-2 mt-4 md:hidden">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => movePiece(-1, 0)}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowLeft" size={24} />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => movePiece(1, 0)}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowRight" size={24} />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={rotatePiece}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="RotateCw" size={24} />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => movePiece(0, 1)}
+            disabled={!isPlaying || gameOver}
+          >
+            <Icon name="ArrowDown" size={24} />
+          </Button>
         </div>
       </Card>
     </div>
